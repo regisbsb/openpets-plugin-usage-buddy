@@ -15,6 +15,7 @@
     "status",
     "schedule",
     "network",
+    "network:local",
     "storage"
   ],
   "network": {
