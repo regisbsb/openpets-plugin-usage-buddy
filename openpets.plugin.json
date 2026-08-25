@@ -32,7 +32,7 @@
       "label": "$t:config.pollSeconds.label",
       "description": "$t:config.pollSeconds.description",
       "default": 60,
-      "min": 60
+      "min": 15
     },
     "port": {
       "type": "number",
@@ -63,6 +63,13 @@
       "label": "$t:config.quietStatus.label",
       "description": "$t:config.quietStatus.description",
       "default": false
+    },
+    "hiddenWindows": {
+      "type": "text",
+      "label": "$t:config.hiddenWindows.label",
+      "description": "$t:config.hiddenWindows.description",
+      "default": "nimbus_quill",
+      "maxLength": 200
     }
   }
 }

@@ -79,6 +79,22 @@ assert.equal(
   "summaryLine rolls up every window led by display_name",
 );
 assert.equal(summaryLine(snapshot, "codex"), "Codex 7d: 3%", "summaryLine honors provider filter");
+const staleSnapshot = contract({ claude5h: 12, claude7d: 1, codex7d: 3 });
+staleSnapshot.providers.codex.stale = true;
+assert.equal(
+  summaryLine(staleSnapshot, "both"),
+  "Claude 5h: 12% 7d: 1%",
+  "summaryLine skips stale providers",
+);
+const hiddenSnapshot = contract({ claude5h: 12, claude7d: 1, codex7d: 3 });
+hiddenSnapshot.providers.claude.windows.nimbus_quill = { utilization: 99, resets_at: "2026-08-25T17:00:00Z" };
+assert.equal(maxEntry(hiddenSnapshot, "both").pct, 99, "without a hidden list, nimbus_quill would dominate");
+assert.equal(
+  summaryLine(hiddenSnapshot, "both", ["nimbus_quill"]),
+  "Claude 5h: 12% 7d: 1% Codex 7d: 3%",
+  "summaryLine suppresses hidden windows",
+);
+assert.equal(maxEntry(hiddenSnapshot, "both", ["nimbus_quill"]).pct, 12, "maxEntry ignores hidden windows");
 assert.equal(prettyWindow("seven_day_sonnet"), "7d Sonnet", "prettyWindow prettifies unknown suffixes");
 assert.equal(maxEntry(snapshot, "both").pct, 12, "maxEntry finds the highest utilization");
 assert.equal(maxEntry(snapshot, "both").name, "Claude", "maxEntry reports the provider display_name");
@@ -95,6 +111,7 @@ h.net.mock(USAGE_URL, { json: contract({ claude5h: 12, claude7d: 1, codex7d: 3 }
 await h.start();
 
 assert.ok(h.calls.commands.has("usage-now"), "registers the Usage Now command");
+assert.ok(h.calls.commands.has("usage-mood"), "registers the Usage Alert command");
 assert.ok(h.calls.schedules.has("poll"), "schedules the poll loop");
 assert.equal(h.calls.speak.length, 1, "first run speaks exactly once");
 assert.equal(
@@ -143,5 +160,37 @@ assert.ok(
 );
 offline.expectNoErrors();
 await offline.stop();
+
+// --- (e) Offline at enable, then greets on the first successful snapshot ------
+
+const late = createTestHarness(register, { permissions, locales, config });
+await late.start();
+assert.equal(late.calls.speak.length, 0, "no greeting while the monitor is offline");
+
+late.net.mock(USAGE_URL, { json: contract({ claude5h: 12, claude7d: 1, codex7d: 3 }) });
+await late.clock.advance("60s");
+
+assert.equal(late.calls.speak.length, 1, "greets once the monitor comes online");
+assert.equal(
+  late.calls.speak[0],
+  "Claude 5h: 12% 7d: 1% Codex 7d: 3%",
+  "the late greeting is the informative summary",
+);
+assert.ok(late.calls.storage.has("band:claude:five_hour"), "the late greeting seeds bands");
+late.expectNoErrors();
+await late.stop();
+
+// --- (f) Already elevated at enable: greet AND warn immediately --------------
+
+const hot = createTestHarness(register, { permissions, locales, config });
+hot.net.mock(USAGE_URL, { json: contract({ claude5h: 91, claude7d: 61, codex7d: 2 }) });
+await hot.start();
+
+assert.equal(hot.calls.speak.length, 2, "elevated enable speaks the summary and an immediate alert");
+assert.match(hot.calls.speak[1], /^Claude/, "the immediate alert names the provider");
+assert.match(hot.calls.speak[1], /91% 5h/, "the immediate alert cites the hot window");
+assert.ok(hot.calls.react.length >= 1, "the immediate alert animates by level");
+hot.expectNoErrors();
+await hot.stop();
 
 console.log("Usage Buddy tests passed.");
