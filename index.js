@@ -36,7 +36,7 @@ export function normalizeConfig(raw) {
   const port = Number(config.port);
   const filter = config.providerFilter;
   return {
-    pollSeconds: Number.isFinite(pollSeconds) ? Math.max(5, pollSeconds) : 20,
+    pollSeconds: Number.isFinite(pollSeconds) ? Math.max(60, pollSeconds) : 60,
     port: Number.isFinite(port) && port > 0 ? Math.trunc(port) : 45455,
     providerFilter: filter === "claude" || filter === "codex" ? filter : "both",
     thresholds: typeof config.thresholds === "string" ? config.thresholds : "50,75,90,100",

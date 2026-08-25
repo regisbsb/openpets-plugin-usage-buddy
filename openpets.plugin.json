@@ -31,8 +31,8 @@
       "type": "number",
       "label": "$t:config.pollSeconds.label",
       "description": "$t:config.pollSeconds.description",
-      "default": 20,
-      "min": 5
+      "default": 60,
+      "min": 60
     },
     "port": {
       "type": "number",

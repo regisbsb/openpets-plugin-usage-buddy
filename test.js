@@ -22,6 +22,7 @@ const permissions = [
   "status",
   "schedule",
   "network",
+  "network:local",
   "storage",
 ];
 const locales = {
@@ -34,7 +35,7 @@ const locales = {
 };
 
 const config = {
-  pollSeconds: 20,
+  pollSeconds: 60,
   port: 45455,
   providerFilter: "both",
   thresholds: "50,75,90,100",
@@ -111,7 +112,7 @@ assert.ok(h.calls.storage.has("band:claude:five_hour"), "first run seeds bands")
 // --- (b) Upward crossing pushes a speak (with display name) AND a react ------
 
 h.net.mock(USAGE_URL, { json: contract({ claude5h: 80, claude7d: 1, codex7d: 3 }) });
-await h.clock.advance("20s");
+await h.clock.advance("60s");
 
 assert.equal(h.calls.speak.length, 2, "upward crossing adds one spoken line");
 assert.match(h.calls.speak[1], /^Claude/, "band line starts with the provider display name");
@@ -123,7 +124,7 @@ assert.ok(h.calls.react.includes("working"), "upward crossing triggers a reactio
 
 const speakCountAfterCrossing = h.calls.speak.length;
 h.net.mock(USAGE_URL, { json: contract({ claude5h: 80, claude7d: 1, codex7d: 3 }) });
-await h.clock.advance("20s");
+await h.clock.advance("60s");
 assert.equal(h.calls.speak.length, speakCountAfterCrossing, "no new speak without an upward crossing");
 
 h.expectNoErrors();

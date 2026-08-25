@@ -2,7 +2,7 @@
   "plugin.name": "Usage Buddy",
   "plugin.description": "Your pet reflects live Claude and Codex usage read from a local usage monitor endpoint.",
   "config.pollSeconds.label": "Poll interval (seconds)",
-  "config.pollSeconds.description": "How often to read the local usage endpoint. Minimum 5 seconds.",
+  "config.pollSeconds.description": "How often to read the local usage endpoint. Minimum 60 seconds.",
   "config.port.label": "Monitor port",
   "config.port.description": "Localhost port where the usage monitor serves /usage. If you change this, also update network.hosts in openpets.plugin.json to 127.0.0.1:<port> or OpenPets will block the request.",
   "config.providerFilter.label": "Providers to watch",
